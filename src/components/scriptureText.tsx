@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { DivineName, FootnoteRef } from '../design-system/components/reading'
+import { footnoteElementId, footnoteRefElementId } from './verseSelection'
 
 const DIVINE_NAMES: Record<string, string> = {
   SENHOR: 'Senhor',
@@ -22,7 +23,10 @@ export interface RenderedVerse {
  * end of the verse, since the package does not carry the original inline
  * marker position. `nextNumber` lets footnote numbers keep counting across
  * the verses of a passage; `idPrefix` scopes anchor ids so multiple views
- * can render on the same page without collisions.
+ * can render on the same page without collisions. Footnote anchors carry an
+ * `fn-` prefix so jumping to one is never mistaken for a verse selection,
+ * which lives in the same location hash; the marker itself is anchored
+ * `fnref-` so the note at the foot of the chapter can link back to it.
  */
 export function renderVerseText(text: string, footnotes: string[], idPrefix: string, nextNumber: number): RenderedVerse {
   const body: ReactNode[] = text
@@ -31,7 +35,13 @@ export function renderVerseText(text: string, footnotes: string[], idPrefix: str
 
   const notes = footnotes.map((noteText, i) => ({ number: nextNumber + i, text: noteText }))
   for (const note of notes) {
-    body.push(<FootnoteRef key={`ref-${note.number}`} n={note.number} href={`#${idPrefix}-nota-${note.number}`} />)
+    // The id sits on a wrapper: FootnoteRef takes its own props, and this keeps
+    // the design system component as it came.
+    body.push(
+      <span key={`ref-${note.number}`} id={footnoteRefElementId(idPrefix, note.number)}>
+        <FootnoteRef n={note.number} href={`#${footnoteElementId(idPrefix, note.number)}`} />
+      </span>,
+    )
   }
 
   return { body, notes }

@@ -3,6 +3,7 @@ import psalm23 from '../data/psalm23.json'
 import { Badge } from '../design-system/components/core'
 import { Footnote, FootnoteList, RegisterToggle, ReviewSeal, VerseBlock } from '../design-system/components/reading'
 import { renderVerseText } from './scriptureText'
+import { footnoteElementId, footnoteRefElementId } from './verseSelection'
 
 type View = 'formal' | 'original'
 
@@ -55,7 +56,7 @@ function FormalPassage() {
     noteNumber += result.notes.length
     return { verse: verse.verse, ...result }
   })
-  const notes = rendered.flatMap((v) => v.notes)
+  const notes = rendered.flatMap((v) => v.notes.map((note) => ({ ...note, verse: v.verse })))
 
   return (
     <div>
@@ -67,8 +68,15 @@ function FormalPassage() {
       {notes.length > 0 && (
         <FootnoteList>
           {notes.map((note) => (
-            <Footnote key={note.number} n={note.number} id={`formal-nota-${note.number}`}>
-              {note.text}
+            <Footnote key={note.number} n={note.number} id={footnoteElementId('formal', note.number)}>
+              {note.text}{' '}
+              <a
+                href={`#${footnoteRefElementId('formal', note.number)}`}
+                aria-label={`Voltar ao versículo ${note.verse}`}
+                className="whitespace-nowrap font-sans text-[var(--color-footnote-marker)] no-underline hover:underline"
+              >
+                ↩
+              </a>
             </Footnote>
           ))}
         </FootnoteList>
